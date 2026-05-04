@@ -1,0 +1,77 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        "surface-bright": "#352254",
+        "background": "#140727",
+        "secondary-container": "#00696f",
+        "tertiary-dim": "#874cff",
+        "surface-container-low": "#190b30",
+        "tertiary-fixed": "#bda1ff",
+        "inverse-on-surface": "#5d4e73",
+        "surface": "#140727",
+        "on-primary": "#580058",
+        "primary-container": "#ff5af9",
+        "error-dim": "#d73357",
+        "on-surface-variant": "#b5a4cd",
+        "on-surface": "#eee0ff",
+        "on-primary-container": "#440044",
+        "on-primary-fixed": "#000000",
+        "outline-variant": "#4f4165",
+        "secondary-dim": "#00e2ed",
+        "tertiary": "#ac89ff",
+        "surface-container": "#201139",
+        "on-tertiary-fixed-variant": "#4700a7",
+        "on-secondary-container": "#e1fdff",
+        "primary-fixed": "#ff5af9",
+        "on-secondary-fixed-variant": "#006065",
+        "tertiary-fixed-dim": "#b190ff",
+        "on-error-container": "#ffb2b9",
+        "on-background": "#eee0ff",
+        "surface-dim": "#140727",
+        "on-tertiary": "#290067",
+        "primary-fixed-dim": "#ff1cfe",
+        "surface-container-lowest": "#000000",
+        "on-secondary": "#00565a",
+        "outline": "#7e6f95",
+        "secondary": "#00f1fd",
+        "surface-tint": "#ff7cf5",
+        "surface-container-highest": "#2e1c4b",
+        "on-tertiary-container": "#f8f1ff",
+        "inverse-surface": "#fef7ff",
+        "on-primary-fixed-variant": "#540054",
+        "error-container": "#a70138",
+        "on-secondary-fixed": "#004145",
+        "surface-container-high": "#271641",
+        "on-tertiary-fixed": "#1f0052",
+        "error": "#ff6e84",
+        "secondary-fixed": "#00f1fd",
+        "surface-variant": "#2e1c4b",
+        "primary-dim": "#ff51fa",
+        "tertiary-container": "#7000ff",
+        "on-error": "#490013",
+        "primary": "#ff7cf5",
+        "secondary-fixed-dim": "#00e2ed",
+        "inverse-primary": "#aa00aa"
+      },
+      borderRadius: {
+        "DEFAULT": "0px",
+        "lg": "0px",
+        "xl": "0px",
+        "full": "9999px"
+      },
+      fontFamily: {
+        "headline": ["Space Grotesk", "sans-serif"],
+        "body": ["Plus Jakarta Sans", "sans-serif"],
+        "label": ["Space Grotesk", "sans-serif"]
+      }
+    },
+  },
+  plugins: [require("daisyui")],
+}
+

@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary;
+  }
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+  .scanlines {
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 50%);
+    background-size: 100% 4px;
+  }
+  .grid-pattern {
+    background-image: 
+        linear-gradient(to right, rgba(79, 65, 101, 0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(79, 65, 101, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .clipped-corner {
+    clip-path: polygon(0 0, 90% 0, 100% 15%, 100% 100%, 0 100%);
+  }
+  .crt-glow {
+    text-shadow: 0 0 8px rgba(255, 124, 245, 0.6);
+  }
+  .cyan-glow {
+    text-shadow: 0 0 10px rgba(0, 241, 253, 0.8);
+  }
+}
