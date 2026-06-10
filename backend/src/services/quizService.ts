@@ -1,8 +1,10 @@
 import prisma from '../utils/prisma';
 
-export const generateQuiz = async (limit: number = 5) => {
-  // Get all words
-  const allWords = await prisma.word.findMany();
+export const generateQuiz = async (userId: string, limit: number = 5) => {
+  // Get all words for this user
+  const allWords = await prisma.word.findMany({
+    where: { userId }
+  });
   
   if (allWords.length < 4) {
     throw new Error('Not enough words to generate a quiz. Add at least 4 words.');

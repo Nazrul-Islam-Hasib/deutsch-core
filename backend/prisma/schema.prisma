@@ -13,15 +13,28 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  words     Word[]
+
+  @@map("users")
+}
+
 model Word {
   id          String   @id @default(uuid())
-  germanWord  String   @unique
+  germanWord  String
   translation String
   article     String?
   wordType    String?
   createdAt   DateTime @default(now())
   progress    FlashcardProgress?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([germanWord, userId])
   @@map("words")
 }
 

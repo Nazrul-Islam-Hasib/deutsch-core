@@ -95,42 +95,43 @@ const WordListPage: React.FC = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {words.map((word) => (
-              <div key={word.id} className="bg-surface-container-high group relative p-6 border-l border-outline-variant/10 hover:bg-surface-container-highest transition-colors cursor-pointer">
-                <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-100 transition-opacity flex gap-2">
-                  <Link to={`/words/${word.id}`} className="material-symbols-outlined text-primary hover:scale-110 transition-transform">info</Link>
-                  <button 
-                    onClick={(e) => handleDeleteClick(e, word.id)}
-                    className="material-symbols-outlined text-error hover:scale-110 transition-transform"
-                  >
-                    delete
-                  </button>
-                </div>
-                <div className="mb-8">
+                <Link key={word.id} to={`/words/${word.id}`} className="block">
+                  <div className="bg-surface-container-high group relative p-6 border-l border-outline-variant/10 hover:bg-surface-container-highest transition-colors cursor-pointer h-full">
+                    <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-100 transition-opacity flex gap-2 z-10">
+                      <button
+                          onClick={(e) => handleDeleteClick(e, word.id)}
+                          className="material-symbols-outlined text-error hover:scale-110 transition-transform"
+                      >
+                        delete
+                      </button>
+                    </div>
+                    <div className="mb-8">
                   <span className={`font-headline text-[10px] tracking-[0.2em] font-bold px-2 py-1 border ${
-                    word.article?.toLowerCase() === 'der' ? 'bg-secondary/10 text-secondary border-secondary/30' :
-                    word.article?.toLowerCase() === 'die' ? 'bg-primary/10 text-primary border-primary/30' : 
-                        word.article?.toLowerCase() === 'das' ? 'bg-on-secondary/10 text-success border-on-secondary/30' :
-                    'bg-on-surface-variant/10 text-on-surface-variant border-on-surface-variant/30'
+                      word.article?.toLowerCase() === 'der' ? 'bg-secondary/10 text-secondary border-secondary/30' :
+                          word.article?.toLowerCase() === 'die' ? 'bg-primary/10 text-primary border-primary/30' :
+                              word.article?.toLowerCase() === 'das' ? 'bg-on-secondary/10 text-success border-on-secondary/30' :
+                                  'bg-on-surface-variant/10 text-on-surface-variant border-on-surface-variant/30'
                   } uppercase`}>
                     {word.article || 'N/A'}
                   </span>
-                </div>
-                <h3 className="font-headline text-4xl font-bold tracking-tight text-on-surface mb-2 group-hover:text-primary transition-colors truncate">
-                  {word.germanWord}
-                </h3>
-                <p className="text-on-surface-variant font-body text-sm mb-6 tracking-wide italic">
-                  {word.translation}
-                </p>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
+                    </div>
+                    <h3 className="font-headline text-4xl font-bold tracking-tight text-on-surface mb-2 group-hover:text-primary transition-colors truncate">
+                      {word.germanWord}
+                    </h3>
+                    <p className="text-on-surface-variant font-body text-sm mb-6 tracking-wide italic">
+                      {word.translation}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-secondary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
                       {word.wordType?.toLowerCase() === 'noun' ? 'layers' : 'bolt'}
                     </span>
-                    <span className="text-[10px] font-bold font-headline text-secondary tracking-widest uppercase">{word.wordType}</span>
+                        <span className="text-[10px] font-bold font-headline text-secondary tracking-widest uppercase">{word.wordType}</span>
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-[10px] text-outline tracking-widest uppercase">ID: {word.id.substring(0, 5)}</span>
-                </div>
-              </div>
+                </Link>
+
             ))}
 
             {/* Add New Word Pit */}

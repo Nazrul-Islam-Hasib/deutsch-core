@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import wordRoutes from './routes/wordRoutes';
 import quizRoutes from './routes/quizRoutes';
+import authRoutes from './routes/authRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +18,7 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
+app.use('/auth', authRoutes);
 app.use('/words', wordRoutes);
 app.use('/quiz', quizRoutes);
 

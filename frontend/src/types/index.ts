@@ -54,3 +54,18 @@ export interface WordState {
   fetchWordById: (id: string) => Promise<void>;
   updateWord: (id: string, word: Partial<Word>) => Promise<boolean>;
 }
+export interface User {
+  id: string;
+  email: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  init: () => void;
+}

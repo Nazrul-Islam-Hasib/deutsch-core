@@ -1,8 +1,16 @@
 import React from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/useAuthStore';
 
 const Layout: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const navItems = [
     { label: 'VOCABULARY', path: '/', icon: 'menu_book' },
@@ -56,8 +64,14 @@ const Layout: React.FC = () => {
         </div>
 
         <div className="p-6 border-t border-[#4f4165]/20">
-          <button className="w-full bg-primary text-on-primary py-3 font-headline font-black text-[10px] tracking-widest uppercase hover:brightness-110 shadow-[0_0_15px_rgba(255,124,245,0.4)] transition-all">
-            UPGRADE_LICENCE
+          <div className="mb-4 text-center">
+            <p className="text-[10px] text-primary/60 font-headline uppercase truncate">{user?.email}</p>
+          </div>
+          <button 
+            onClick={handleLogout}
+            className="w-full bg-error/10 text-error border border-error/30 py-3 font-headline font-black text-[10px] tracking-widest uppercase hover:bg-error hover:text-white transition-all"
+          >
+            TERMINATE_SESSION
           </button>
         </div>
       </nav>
