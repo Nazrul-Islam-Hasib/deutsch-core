@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { AuthState } from '../types/index';
 import { authApi } from '../services/api/authApi';
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: localStorage.getItem('token'),
   isLoading: false,

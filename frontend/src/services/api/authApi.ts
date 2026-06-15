@@ -1,6 +1,5 @@
+import { ENDPOINTS } from '../../config/api';
 import type { ApiResponse, User } from '../../types/index';
-
-const API_BASE_URL = 'http://localhost:3000';
 
 export interface AuthResponse {
   user: User;
@@ -9,7 +8,7 @@ export interface AuthResponse {
 
 export const authApi = {
   login: async (email: string, password: string): Promise<ApiResponse<AuthResponse>> => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(ENDPOINTS.auth.login, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -18,7 +17,7 @@ export const authApi = {
   },
 
   register: async (email: string, password: string): Promise<ApiResponse<AuthResponse>> => {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetch(ENDPOINTS.auth.register, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),

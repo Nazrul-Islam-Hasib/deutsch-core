@@ -3,7 +3,11 @@ import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma';
 import { z } from 'zod';
 
-const JWT_SECRET = process.env['JWT_SECRET'] || 'supersecret';
+const JWT_SECRET = process.env['JWT_SECRET'];
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET is not defined in environment variables');
+}
 
 export const registerSchema = z.object({
   body: z.object({

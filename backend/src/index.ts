@@ -1,8 +1,11 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import wordRoutes from './routes/wordRoutes';
 import quizRoutes from './routes/quizRoutes';
 import authRoutes from './routes/authRoutes';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

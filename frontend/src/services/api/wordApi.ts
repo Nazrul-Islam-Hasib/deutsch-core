@@ -1,6 +1,5 @@
+import { ENDPOINTS } from '../../config/api';
 import type { ApiResponse, Word } from '../../types/index';
-
-const API_BASE_URL = 'http://localhost:3000';
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');
@@ -12,19 +11,14 @@ const getHeaders = () => {
 
 export const wordApi = {
   getAll: async (search?: string, page: number = 1, limit: number = 20): Promise<ApiResponse<Word[]>> => {
-    const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    params.append('page', page.toString());
-    params.append('limit', limit.toString());
-    
-    const response = await fetch(`${API_BASE_URL}/words?${params.toString()}`, {
+    const response = await fetch(ENDPOINTS.words.all(search, page, limit), {
       headers: getHeaders(),
     });
     return await response.json();
   },
 
   create: async (data: Partial<Word>): Promise<ApiResponse<Word>> => {
-    const response = await fetch(`${API_BASE_URL}/words`, {
+    const response = await fetch(ENDPOINTS.words.create, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -33,14 +27,14 @@ export const wordApi = {
   },
 
   getById: async (id: string): Promise<ApiResponse<Word>> => {
-    const response = await fetch(`${API_BASE_URL}/words/${id}`, {
+    const response = await fetch(ENDPOINTS.words.byId(id), {
       headers: getHeaders(),
     });
     return await response.json();
   },
 
   update: async (id: string, data: Partial<Word>): Promise<ApiResponse<Word>> => {
-    const response = await fetch(`${API_BASE_URL}/words/${id}`, {
+    const response = await fetch(ENDPOINTS.words.update(id), {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -49,7 +43,7 @@ export const wordApi = {
   },
 
   delete: async (id: string): Promise<ApiResponse<null>> => {
-    const response = await fetch(`${API_BASE_URL}/words/${id}`, {
+    const response = await fetch(ENDPOINTS.words.delete(id), {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -57,7 +51,7 @@ export const wordApi = {
   },
 
   updateProgress: async (id: string, isKnown: boolean): Promise<ApiResponse<any>> => {
-    const response = await fetch(`${API_BASE_URL}/words/${id}/progress`, {
+    const response = await fetch(ENDPOINTS.words.progress(id), {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ isKnown }),
