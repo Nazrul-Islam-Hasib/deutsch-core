@@ -14,7 +14,10 @@ The application is live here: [https://deutsch-core.web.app/](https://deutsch-co
 
 ## 🚀 Features
 
-- **Authentication**: Secure Login and Signup system using JWT.
+- **Advanced Authentication**: Secure Login and Signup with session-based authentication, JWT access tokens, and secure HTTP-only refresh token cookies.
+- **Token Rotation & Security**: Automatic refresh token rotation on each use with consumed token tracking to detect and prevent token reuse attacks.
+- **Idle Timeout Protection**: 30-minute inactivity timeout with 2-minute warning modal before automatic logout to ensure security.
+- **CSRF Protection**: State-changing requests protected with custom security headers (X-Requested-With) and CORS whitelist validation.
 - **Personalized Archive**: Each user maintains their own private collection of German words.
 - **Word Management**: Add, edit, and organize German words with their articles, translations, and types.
 - **Flashcard System**: Track your learning progress with a dedicated flashcard review system.
@@ -31,6 +34,8 @@ The application is live here: [https://deutsch-core.web.app/](https://deutsch-co
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [DaisyUI](https://daisyui.com/)
 - **State Management**: [Zustand](https://docs.pmnd.rs/zustand/getting-started/introduction)
 - **Routing**: [React Router 7](https://reactrouter.com/)
+- **API Client**: Centralized HTTP client with automatic token refresh, CSRF headers, and secure cookie handling
+- **Session Management**: IdleTimer component with 30-min inactivity detection and user warning modal
 - **Testing**: [Vitest](https://vitest.dev/)
 
 ### Backend
@@ -39,8 +44,10 @@ The application is live here: [https://deutsch-core.web.app/](https://deutsch-co
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **ORM**: [Prisma](https://www.prisma.io/)
 - **Database**: [PostgreSQL](https://www.postgresql.org/) (Supabase)
-- **Authentication**: [JWT](https://jwt.io/) & [Bcryptjs](https://github.com/dcodeIO/bcrypt.js)
+- **Authentication**: [JWT](https://jwt.io/) with session-based token management, [Bcryptjs](https://github.com/dcodeIO/bcrypt.js), & HTTP-only cookies
+- **Security**: CSRF protection, Refresh token rotation, Token reuse detection, Idle timeout enforcement
 - **Validation**: [Zod](https://zod.dev/)
+- **Cookie Parsing**: [cookie-parser](https://github.com/expressjs/cookie-parser)
 - **Testing**: [Jest](https://jestjs.io/) & [Supertest](https://github.com/ladjs/supertest)
 
 ## 📁 Project Structure
@@ -87,6 +94,8 @@ Deutsch_Core/
    DATABASE_URL="postgresql://user:password@localhost:5432/deutsch_core"
    DIRECT_URL="postgresql://user:password@localhost:5432/deutsch_core" # For migrations
    JWT_SECRET="your_secure_random_string"
+   NODE_ENV="development" # or "production"
+   ALLOWED_ORIGINS="http://localhost:5173,https://deutsch-core.web.app" # Comma-separated list
    ```
 4. Run Prisma migrations:
    ```bash
