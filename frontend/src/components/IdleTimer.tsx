@@ -9,8 +9,9 @@ const HEARTBEAT_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes
 const IdleTimer: React.FC = () => {
   const { user, logout, isInitialized } = useAuthStore();
   const [showWarning, setShowWarning] = useState(false);
-  const lastActivityRef = useRef<number>(Date.now());
-  const heartbeatRef = useRef<number>(Date.now());
+  // Set when a user logs in (see effect below); Date.now() must not run during render.
+  const lastActivityRef = useRef<number>(0);
+  const heartbeatRef = useRef<number>(0);
 
   const handleActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
@@ -27,6 +28,15 @@ const IdleTimer: React.FC = () => {
     } catch (error) {
       console.error('Heartbeat failed', error);
     }
+  }, [user]);
+
+  // Start the idle and heartbeat clocks at login. Kept separate from the effect
+  // below, which re-runs whenever the warning toggles and must not reset them.
+  useEffect(() => {
+    if (!user) return;
+    const now = Date.now();
+    lastActivityRef.current = now;
+    heartbeatRef.current = now;
   }, [user]);
 
   useEffect(() => {

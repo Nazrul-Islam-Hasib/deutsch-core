@@ -82,14 +82,14 @@ class ApiClient {
         success: response.ok,
         data: null,
         error: response.ok ? null : `Request failed with status ${response.status}`
-    } as any;
+    } as T;
   }
 
   get<T>(url: string, options: RequestInit = {}) {
     return this.request<T>(url, { ...options, method: 'GET' });
   }
 
-  post<T>(url: string, body?: any, options: RequestInit = {}) {
+  post<T>(url: string, body?: unknown, options: RequestInit = {}) {
     return this.request<T>(url, {
       ...options,
       method: 'POST',
@@ -101,7 +101,7 @@ class ApiClient {
     });
   }
 
-  put<T>(url: string, body?: any, options: RequestInit = {}) {
+  put<T>(url: string, body?: unknown, options: RequestInit = {}) {
     return this.request<T>(url, {
       ...options,
       method: 'PUT',

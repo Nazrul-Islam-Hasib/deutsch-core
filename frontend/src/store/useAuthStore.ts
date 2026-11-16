@@ -57,7 +57,7 @@ export const useAuthStore = create<ExtendedAuthState>((set, get) => ({
         set({ error: String(response.error), isLoading: false });
         return false;
       }
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to login', isLoading: false });
       return false;
     }
@@ -76,7 +76,7 @@ export const useAuthStore = create<ExtendedAuthState>((set, get) => ({
         set({ error: String(response.error), isLoading: false });
         return false;
       }
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to register', isLoading: false });
       return false;
     }

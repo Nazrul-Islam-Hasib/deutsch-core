@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAuthStore } from '../store/useAuthStore';
 import { authApi } from '../services/api/authApi';
+import type { ApiResponse } from '../types/index';
+
+// The backend sends data: null on failure; ApiResponse<T> types data as T.
+const failure = (error: string): ApiResponse<never> => ({ success: false, data: null as never, error });
 
 // Mock authApi
 vi.mock('../services/api/authApi', () => ({
@@ -44,13 +48,15 @@ describe('useAuthStore', () => {
       const mockUser = { id: '1', email: 'test@example.com' };
       const mockAccessToken = 'new-access-token';
       
-      (authApi.refresh as any).mockResolvedValue({
+      vi.mocked(authApi.refresh).mockResolvedValue({
         success: true,
         data: { accessToken: mockAccessToken },
+        error: null,
       });
-      (authApi.me as any).mockResolvedValue({
+      vi.mocked(authApi.me).mockResolvedValue({
         success: true,
         data: mockUser,
+        error: null,
       });
 
       await useAuthStore.getState().init();
@@ -62,10 +68,7 @@ describe('useAuthStore', () => {
     });
 
     it('should fail restoration if refresh fails', async () => {
-      (authApi.refresh as any).mockResolvedValue({
-        success: false,
-        error: 'No refresh token',
-      });
+      vi.mocked(authApi.refresh).mockResolvedValue(failure('No refresh token'));
 
       await useAuthStore.getState().init();
 
@@ -80,9 +83,10 @@ describe('useAuthStore', () => {
       const mockUser = { id: '1', email: 'test@example.com' };
       const mockToken = 'mock-token';
       
-      (authApi.login as any).mockResolvedValue({
+      vi.mocked(authApi.login).mockResolvedValue({
         success: true,
         data: { user: mockUser, accessToken: mockToken },
+        error: null,
       });
 
       const success = await useAuthStore.getState().login('test@example.com', 'password');
@@ -95,10 +99,7 @@ describe('useAuthStore', () => {
     });
 
     it('should fail login and set error', async () => {
-      (authApi.login as any).mockResolvedValue({
-        success: false,
-        error: 'Invalid credentials',
-      });
+      vi.mocked(authApi.login).mockResolvedValue(failure('Invalid credentials'));
 
       const success = await useAuthStore.getState().login('test@example.com', 'wrong');
 

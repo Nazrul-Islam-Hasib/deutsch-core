@@ -27,7 +27,7 @@ export const useWordStore = create<WordState>((set) => ({
       } else {
         set({ error: String(response.error), isLoading: false });
       }
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to fetch words', isLoading: false });
     }
   },
@@ -43,7 +43,7 @@ export const useWordStore = create<WordState>((set) => ({
       } else {
         set({ error: String(response.error), isLoading: false });
       }
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to fetch word details', isLoading: false });
     }
   },
@@ -62,7 +62,7 @@ export const useWordStore = create<WordState>((set) => ({
         set({ error: String(response.error), isLoading: false });
         return false;
       }
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to add word', isLoading: false });
       return false;
     }
@@ -83,7 +83,7 @@ export const useWordStore = create<WordState>((set) => ({
         set({ error: String(response.error), isLoading: false });
         return false;
       }
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to update word', isLoading: false });
       return false;
     }
@@ -101,7 +101,7 @@ export const useWordStore = create<WordState>((set) => ({
       } else {
         set({ error: String(response.error), isLoading: false });
       }
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to delete word', isLoading: false });
     }
   },
