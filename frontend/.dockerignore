@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-ssr
+coverage
+.env
+.env.*
+.firebase
+*.log
+.DS_Store
+Dockerfile
+.dockerignore
