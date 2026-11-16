@@ -1,0 +1,112 @@
+# Deploys the live app after CI passes on main:
+#   Supabase migrations -> Vercel (backend) -> Firebase Hosting (frontend) -> smoke test
+name: Deploy live
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch: # manual redeploy of the current main
+
+permissions:
+  contents: read
+
+# Deploys queue up; never cancel one halfway through.
+concurrency:
+  group: deploy-live
+  cancel-in-progress: false
+
+env:
+  BACKEND_URL: https://deutsch-core-backend.vercel.app
+  FRONTEND_URL: https://deutsch-core.web.app
+
+jobs:
+  deploy:
+    name: Migrate, deploy and verify
+    # Only after a successful CI run for a push to main (not for a PR whose
+    # branch happens to be called "main"), or when started by hand.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: production # secrets live here; only main may deploy
+      url: ${{ env.FRONTEND_URL }}
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Deploy exactly the commit that CI tested.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      # 1. Database first, so the new backend never runs against an old schema.
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Apply migrations to Supabase
+        working-directory: backend
+        env:
+          # schema.prisma requires both; migrate deploy uses DIRECT_URL.
+          DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+        run: npx prisma migrate deploy
+
+      # 2. Backend. Vercel builds it remotely; runtime env vars are set in the Vercel project.
+      - name: Deploy backend to Vercel
+        working-directory: backend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx --yes vercel@65 deploy --prod --yes --token "$VERCEL_TOKEN"
+
+      # 3. Frontend, built against the live backend URL.
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ env.BACKEND_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy frontend to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: deutsch-core
+          channelId: live
+          entryPoint: frontend
+
+      # 4. Verify what users will actually hit.
+      - name: Smoke test live URLs
+        run: |
+          set -euo pipefail
+
+          echo "Backend health"
+          curl -fsS --retry 5 --retry-delay 5 --retry-all-errors "$BACKEND_URL/health"; echo
+
+          echo "CORS: backend must allow the live frontend origin (ALLOWED_ORIGINS on Vercel)"
+          curl -sS -o /dev/null -D cors.txt -X OPTIONS \
+            -H "Origin: $FRONTEND_URL" \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: content-type,x-requested-with' \
+            "$BACKEND_URL/auth/login"
+          grep -i "^access-control-allow-origin: $FRONTEND_URL" cors.txt
+          grep -i '^access-control-allow-credentials: true' cors.txt
+
+          echo "Frontend"
+          curl -fsS -o /dev/null "$FRONTEND_URL/"
+          curl -fsS -o /dev/null "$FRONTEND_URL/flashcards"
+          echo "All live checks passed"
