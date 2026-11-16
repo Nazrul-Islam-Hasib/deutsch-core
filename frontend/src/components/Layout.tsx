@@ -35,7 +35,7 @@ const Layout: React.FC = () => {
               <div className="w-full h-full bg-surface-bright flex items-center justify-center text-primary font-headline font-bold">A1</div>
             </div>
             <div>
-              <p className="font-headline text-[10px] font-bold tracking-[0.2em] text-primary uppercase">ARCHIVE_01</p>
+              <p className="font-headline text-[10px] font-bold tracking-[0.2em] text-primary uppercase">{user?.email}</p>
               <p className="font-headline text-[8px] tracking-[0.2em] text-secondary">OPERATOR: ACTIVE</p>
             </div>
           </div>

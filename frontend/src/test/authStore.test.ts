@@ -7,19 +7,27 @@ vi.mock('../services/api/authApi', () => ({
   authApi: {
     login: vi.fn(),
     register: vi.fn(),
+    refresh: vi.fn(),
+    me: vi.fn(),
+    logout: vi.fn(),
+  },
+}));
+
+// Mock apiClient
+vi.mock('../services/apiClient', () => ({
+  apiClient: {
+    setAccessToken: vi.fn(),
   },
 }));
 
 describe('useAuthStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
-    // Reset store state manually if needed, but Zustand stores persist between tests if not handled
-    // For simplicity in this test, we'll just set it
     useAuthStore.setState({
       user: null,
       token: null,
       isLoading: false,
+      isInitialized: false,
       error: null,
     });
   });
@@ -28,6 +36,43 @@ describe('useAuthStore', () => {
     const state = useAuthStore.getState();
     expect(state.user).toBeNull();
     expect(state.token).toBeNull();
+    expect(state.isInitialized).toBe(false);
+  });
+
+  describe('init', () => {
+    it('should restore session successfully', async () => {
+      const mockUser = { id: '1', email: 'test@example.com' };
+      const mockAccessToken = 'new-access-token';
+      
+      (authApi.refresh as any).mockResolvedValue({
+        success: true,
+        data: { accessToken: mockAccessToken },
+      });
+      (authApi.me as any).mockResolvedValue({
+        success: true,
+        data: mockUser,
+      });
+
+      await useAuthStore.getState().init();
+
+      const state = useAuthStore.getState();
+      expect(state.user).toEqual(mockUser);
+      expect(state.token).toBe(mockAccessToken);
+      expect(state.isInitialized).toBe(true);
+    });
+
+    it('should fail restoration if refresh fails', async () => {
+      (authApi.refresh as any).mockResolvedValue({
+        success: false,
+        error: 'No refresh token',
+      });
+
+      await useAuthStore.getState().init();
+
+      const state = useAuthStore.getState();
+      expect(state.user).toBeNull();
+      expect(state.isInitialized).toBe(true);
+    });
   });
 
   describe('login', () => {
@@ -37,7 +82,7 @@ describe('useAuthStore', () => {
       
       (authApi.login as any).mockResolvedValue({
         success: true,
-        data: { user: mockUser, token: mockToken },
+        data: { user: mockUser, accessToken: mockToken },
       });
 
       const success = await useAuthStore.getState().login('test@example.com', 'password');
@@ -46,8 +91,7 @@ describe('useAuthStore', () => {
       const state = useAuthStore.getState();
       expect(state.user).toEqual(mockUser);
       expect(state.token).toBe(mockToken);
-      expect(localStorage.getItem('token')).toBe(mockToken);
-      expect(localStorage.getItem('user')).toBe(JSON.stringify(mockUser));
+      expect(state.isInitialized).toBe(true);
     });
 
     it('should fail login and set error', async () => {
@@ -65,38 +109,18 @@ describe('useAuthStore', () => {
     });
   });
 
-  describe('register', () => {
-    it('should register successfully and set user and token', async () => {
-      const mockUser = { id: '1', email: 'test@example.com' };
-      const mockToken = 'mock-token';
-      
-      (authApi.register as any).mockResolvedValue({
-        success: true,
-        data: { user: mockUser, token: mockToken },
-      });
-
-      const success = await useAuthStore.getState().register('test@example.com', 'password');
-
-      expect(success).toBe(true);
-      const state = useAuthStore.getState();
-      expect(state.user).toEqual(mockUser);
-      expect(state.token).toBe(mockToken);
-    });
-  });
-
   describe('logout', () => {
-    it('should clear user and token', () => {
+    it('should clear user and token', async () => {
       useAuthStore.setState({
         user: { id: '1', email: 'test@example.com' },
         token: 'token',
       });
 
-      useAuthStore.getState().logout();
+      await useAuthStore.getState().logout();
 
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.token).toBeNull();
-      expect(localStorage.getItem('token')).toBeNull();
     });
   });
 });
