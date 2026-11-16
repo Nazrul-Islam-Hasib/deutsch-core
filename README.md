@@ -1,5 +1,7 @@
 # Deutsch Core 🇩🇪
 
+[![CI](https://github.com/Nazrul-Islam-Hasib/deutsch-core/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Nazrul-Islam-Hasib/deutsch-core/actions/workflows/ci.yml)
+
 Deutsch Core is a comprehensive language learning application designed to help users master German vocabulary through structured word management, interactive flashcards, and quizzes.
 
 ## 🔗 Live Link
