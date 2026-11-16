@@ -61,7 +61,8 @@ Deutsch_Core/
 │   │   ├── routes/
 │   │   ├── services/    # Business logic
 │   │   └── tests/       # Jest tests
-│   └── prisma/         # Database schema & migrations
+│   ├── prisma/         # Database schema & migrations
+│   └── Dockerfile      # Multi-stage: build, migrate job, runtime
 ├── frontend/           # React application
 │   ├── src/
 │   │   ├── components/
@@ -70,17 +71,44 @@ Deutsch_Core/
 │   │   ├── store/      # Zustand store (Auth & Words)
 │   │   ├── services/   # API services
 │   │   └── test/       # Vitest tests
+│   ├── Dockerfile      # Vite build served by nginx
+│   └── nginx.conf      # SPA fallback + /api proxy to the backend
+├── docker-compose.yml  # Local stack: db, migrate, backend, frontend
+├── .env.example        # Variables for docker compose (copy to .env)
 ├── assets/             # Project assets (screenshots, etc.)
 └── Project_Guidelines/ # Development guidelines (local only)
 ```
 
 ## ⚙️ Getting Started
 
-### Prerequisites
+### 🐳 Run with Docker (quickest)
+
+Requires only [Docker Desktop](https://www.docker.com/products/docker-desktop/). This starts Postgres, applies the migrations, and runs the backend and the frontend:
+
+```bash
+cp .env.example .env      # local dev values; change JWT_SECRET if you like
+docker compose up --build
+```
+
+Open **http://localhost:8080**. nginx serves the React app and proxies `/api/*` to the backend, so the browser only talks to one origin.
+
+```text
+browser → frontend (nginx :8080) → /api → backend (Express :3000) → db (Postgres :5432)
+```
+
+| Command | What it does |
+|---|---|
+| `docker compose down` | Stop the stack (keeps the database) |
+| `docker compose down -v` | Stop and delete the database volume |
+| `docker compose up db` | Only Postgres, for hot-reload development with `npm run dev` |
+
+### Manual setup
+
+#### Prerequisites
 - Node.js (Latest LTS recommended)
 - PostgreSQL database (e.g., Supabase)
 
-### Backend Setup
+#### Backend Setup
 1. Navigate to the `backend` directory:
    ```bash
    cd backend
@@ -106,7 +134,7 @@ Deutsch_Core/
    npm run dev
    ```
 
-### Frontend Setup
+#### Frontend Setup
 1. Navigate to the `frontend` directory:
    ```bash
    cd frontend
