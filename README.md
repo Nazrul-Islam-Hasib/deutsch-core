@@ -75,6 +75,8 @@ Deutsch_Core/
 │   │   └── test/       # Vitest tests
 │   ├── Dockerfile      # Vite build served by nginx
 │   └── nginx.conf      # SPA fallback + /api proxy to the backend
+├── .github/workflows/  # CI (ci.yml) and live deploy (deploy-live.yml)
+├── docs/               # Runbook: pipelines, secrets, rollback, troubleshooting
 ├── docker-compose.yml  # Local stack: db, migrate, backend, frontend
 ├── .env.example        # Variables for docker compose (copy to .env)
 ├── assets/             # Project assets (screenshots, etc.)
@@ -167,6 +169,15 @@ npm test
 cd frontend
 npm test
 ```
+
+## 🔄 CI/CD
+
+GitHub Actions tests every pull request (backend tests against Postgres, frontend lint/tests/build, Docker smoke test). After a merge to `main` passes CI, the live app is deployed automatically: Supabase migrations → Vercel (backend) → Firebase Hosting (frontend) → smoke test.
+Secrets, redeploys, rollback and troubleshooting: see the [runbook](docs/runbook.md).
+
+## ⚠️ Known Limitations
+
+- **Safari and Chrome Incognito log you out on page reload.** The frontend (`web.app`) and API (`vercel.app`) are on different domains, so these browsers block the refresh-token cookie as a third-party cookie. Logging in and using the app works normally; Chrome, Firefox and Edge stay logged in. The fix is to serve both from one domain ([details](docs/runbook.md#6-known-limitations)).
 
 ## 📄 License
 
