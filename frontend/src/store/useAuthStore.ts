@@ -1,22 +1,47 @@
 import { create } from 'zustand';
 import type { AuthState } from '../types/index';
 import { authApi } from '../services/api/authApi';
+import { apiClient } from '../services/apiClient';
 
-export const useAuthStore = create<AuthState>((set) => ({
+interface ExtendedAuthState extends AuthState {
+  isInitialized: boolean;
+  init: () => Promise<void>;
+}
+
+export const useAuthStore = create<ExtendedAuthState>((set, get) => ({
   user: null,
-  token: localStorage.getItem('token'),
+  token: null,
   isLoading: false,
+  isInitialized: false,
   error: null,
 
-  init: () => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        set({ user: JSON.parse(userStr) });
-      } catch (e) {
-        localStorage.removeItem('user');
+  init: async () => {
+    if (get().isInitialized) return;
+    
+    set({ isLoading: true });
+    try {
+      const response = await authApi.refresh();
+      if (response.success) {
+        const { accessToken } = response.data;
+        apiClient.setAccessToken(accessToken);
+        
+        const userResponse = await authApi.me();
+        if (userResponse.success) {
+          set({ 
+            user: userResponse.data, 
+            token: accessToken, 
+            isLoading: false, 
+            isInitialized: true 
+          });
+          return;
+        }
       }
+    } catch (error) {
+      console.error('Auth initialization failed', error);
     }
+    
+    apiClient.setAccessToken(null);
+    set({ user: null, token: null, isLoading: false, isInitialized: true });
   },
 
   login: async (email, password) => {
@@ -24,16 +49,15 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const response = await authApi.login(email, password);
       if (response.success) {
-        const { user, token } = response.data;
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        set({ user, token, isLoading: false });
+        const { user, accessToken } = response.data;
+        apiClient.setAccessToken(accessToken);
+        set({ user, token: accessToken, isLoading: false, isInitialized: true });
         return true;
       } else {
         set({ error: String(response.error), isLoading: false });
         return false;
       }
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to login', isLoading: false });
       return false;
     }
@@ -44,24 +68,27 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const response = await authApi.register(email, password);
       if (response.success) {
-        const { user, token } = response.data;
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        set({ user, token, isLoading: false });
+        const { user, accessToken } = response.data;
+        apiClient.setAccessToken(accessToken);
+        set({ user, token: accessToken, isLoading: false, isInitialized: true });
         return true;
       } else {
         set({ error: String(response.error), isLoading: false });
         return false;
       }
-    } catch (error) {
+    } catch {
       set({ error: 'Failed to register', isLoading: false });
       return false;
     }
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  logout: async () => {
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error('Logout failed on server', error);
+    }
+    apiClient.setAccessToken(null);
     set({ user: null, token: null });
   },
 }));

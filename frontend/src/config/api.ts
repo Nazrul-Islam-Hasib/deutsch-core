@@ -5,6 +5,11 @@ export const ENDPOINTS = {
         register: `${API_BASE_URL}/auth/register`,
         login: `${API_BASE_URL}/auth/login`,
         me: `${API_BASE_URL}/auth/me`,
+        refresh: `${API_BASE_URL}/auth/refresh`,
+        logout: `${API_BASE_URL}/auth/logout`,
+        logoutAll: `${API_BASE_URL}/auth/logout-all`,
+        sessions: `${API_BASE_URL}/auth/sessions`,
+        activity: `${API_BASE_URL}/auth/activity`,
     },
     words: {
         all: (search?: string, page: number = 1, limit: number = 20) => {

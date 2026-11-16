@@ -1,0 +1,144 @@
+# Continuous integration: test, lint and build both apps.
+# Runs on every pull request and on pushes to main (i.e. after a merge).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: CI only needs to read the code.
+permissions:
+  contents: read
+
+# One run per branch/PR. A new push to a PR cancels the outdated run;
+# runs on main are never cancelled, so every merged commit gets a result.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend:
+    name: Backend (Jest + build)
+    runs-on: ubuntu-24.04 # pinned; ubuntu-latest moves to a new image over time
+    defaults:
+      run:
+        working-directory: backend
+
+    # Throwaway Postgres for the tests (they hit a real database, no mocks).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: deutsch_core_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d deutsch_core_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    # Test-only values, not secrets: the database and JWTs exist only inside this job.
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/deutsch_core_test
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/deutsch_core_test
+      JWT_SECRET: ci-only-not-a-secret
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci # postinstall runs `prisma generate`
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Run tests
+        run: npm test
+
+      - name: Type-check and build
+        run: npm run build
+
+  frontend:
+    name: Frontend (lint + Vitest + build)
+    runs-on: ubuntu-24.04 # pinned; ubuntu-latest moves to a new image over time
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npx vitest run # `npm test` would start watch mode
+
+      - name: Build
+        run: npm run build
+
+  docker:
+    name: Docker (build + smoke test)
+    runs-on: ubuntu-24.04
+    # Builds the same images as `docker compose up --build` locally.
+    # Nothing is pushed to a registry here; that happens in the deploy workflows.
+    steps:
+      - uses: actions/checkout@v5
+
+      # No .env needed: docker-compose.yml has dev defaults for every variable.
+      - name: Build images
+        run: docker compose build
+
+      - name: Start stack
+        # --wait blocks until every service is healthy (migrate must exit 0)
+        run: docker compose up -d --wait --wait-timeout 120
+
+      - name: Smoke test through nginx
+        run: |
+          set -euo pipefail
+          BASE=http://localhost:8080
+
+          echo "API health via the /api proxy"
+          curl -fsS "$BASE/api/health"; echo
+
+          echo "SPA index and a client-side route"
+          curl -fsS -o /dev/null "$BASE/"
+          curl -fsS -o /dev/null "$BASE/flashcards"
+
+          echo "Register: checks migrations, CORS allowlist and the refresh cookie"
+          code=$(curl -sS -o register.json -w '%{http_code}' -D headers.txt \
+            -H "Origin: $BASE" -H 'X-Requested-With: XMLHttpRequest' \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"ci-smoke@example.com","password":"password123"}' \
+            "$BASE/api/auth/register")
+          cat register.json; echo
+          test "$code" = 201
+          grep -qi '^set-cookie: refreshToken=' headers.txt
+
+      - name: Container logs
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Stop stack
+        if: always()
+        run: docker compose down -v

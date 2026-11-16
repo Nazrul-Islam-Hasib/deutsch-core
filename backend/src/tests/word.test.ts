@@ -17,9 +17,10 @@ describe('Word API', () => {
     // Register a test user
     const res = await request(app)
       .post('/auth/register')
+      .set('X-Requested-With', 'XMLHttpRequest')
       .send(testUser);
     
-    token = res.body.data.token;
+    token = res.body.data.accessToken;
     userId = res.body.data.user.id;
   });
 
@@ -33,6 +34,7 @@ describe('Word API', () => {
     it('should create a new word with valid data', async () => {
       const res = await request(app)
         .post('/words')
+        .set('X-Requested-With', 'XMLHttpRequest')
         .set('Authorization', `Bearer ${token}`)
         .send({
           germanWord: 'Katze',
@@ -50,6 +52,7 @@ describe('Word API', () => {
     it('should return 400 with invalid data (missing germanWord)', async () => {
       const res = await request(app)
         .post('/words')
+        .set('X-Requested-With', 'XMLHttpRequest')
         .set('Authorization', `Bearer ${token}`)
         .send({
           translation: 'Cat',
@@ -63,6 +66,7 @@ describe('Word API', () => {
     it('should return 400 when trying to create a duplicate word', async () => {
       await request(app)
         .post('/words')
+        .set('X-Requested-With', 'XMLHttpRequest')
         .set('Authorization', `Bearer ${token}`)
         .send({
           germanWord: 'Hund',
@@ -71,6 +75,7 @@ describe('Word API', () => {
 
       const res = await request(app)
         .post('/words')
+        .set('X-Requested-With', 'XMLHttpRequest')
         .set('Authorization', `Bearer ${token}`)
         .send({
           germanWord: 'Hund',
@@ -122,6 +127,7 @@ describe('Word API', () => {
 
       const res = await request(app)
         .put(`/words/${id}`)
+        .set('X-Requested-With', 'XMLHttpRequest')
         .set('Authorization', `Bearer ${token}`)
         .send({
           translation: 'Kitty',
@@ -142,6 +148,7 @@ describe('Word API', () => {
 
       const res = await request(app)
         .delete(`/words/${id}`)
+        .set('X-Requested-With', 'XMLHttpRequest')
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);

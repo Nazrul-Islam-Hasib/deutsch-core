@@ -11,6 +11,7 @@ const EditWordPage: React.FC = () => {
     wordType: 'Noun',
   });
   const [formError, setFormError] = useState('');
+  const [loadedWord, setLoadedWord] = useState<typeof currentWord>(null);
   const { updateWord, currentWord, fetchWordById, isLoading, error: apiError } = useWordStore();
   const navigate = useNavigate();
 
@@ -20,16 +21,17 @@ const EditWordPage: React.FC = () => {
     }
   }, [id, fetchWordById]);
 
-  useEffect(() => {
-    if (currentWord && currentWord.id === id) {
-      setFormData({
-        germanWord: currentWord.germanWord,
-        translation: currentWord.translation,
-        article: currentWord.article || '',
-        wordType: currentWord.wordType || 'Noun',
-      });
-    }
-  }, [currentWord, id]);
+  // Fill the form once the requested word arrives. Done during render rather
+  // than in an effect, to avoid an extra render with an empty form.
+  if (currentWord && currentWord.id === id && currentWord !== loadedWord) {
+    setLoadedWord(currentWord);
+    setFormData({
+      germanWord: currentWord.germanWord,
+      translation: currentWord.translation,
+      article: currentWord.article || '',
+      wordType: currentWord.wordType || 'Noun',
+    });
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

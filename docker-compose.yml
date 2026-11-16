@@ -1,0 +1,75 @@
+# Local stack that mirrors production:
+#   browser -> frontend (nginx :8080) -> /api -> backend (:3000) -> db (Postgres)
+#
+#   cp .env.example .env
+#   docker compose up --build
+#   open http://localhost:8080
+#
+# For hot-reload development instead, run only the database:
+#   docker compose up db
+# then `npm run dev` in backend/ and frontend/ (DB on localhost:5432).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-deutsch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-deutsch_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-deutsch_core}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # One-off job: applies Prisma migrations, then exits.
+  migrate:
+    build:
+      context: ./backend
+      target: migrate
+    environment: &db-env
+      DATABASE_URL: postgresql://${POSTGRES_USER:-deutsch}:${POSTGRES_PASSWORD:-deutsch_dev_password}@db:5432/${POSTGRES_DB:-deutsch_core}
+      DIRECT_URL: postgresql://${POSTGRES_USER:-deutsch}:${POSTGRES_PASSWORD:-deutsch_dev_password}@db:5432/${POSTGRES_DB:-deutsch_core}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+      target: runtime
+    environment:
+      <<: *db-env
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me}
+      # CORS allowlist. Browsers send an Origin header on same-origin POSTs too,
+      # so the nginx origin must be listed or login/register get rejected.
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8080}
+      PORT: "3000"
+    ports:
+      - "3000:3000" # handy for curl/debugging; not needed by the frontend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ./frontend
+      target: runtime
+      args:
+        VITE_API_URL: /api
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: "3000"
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata:

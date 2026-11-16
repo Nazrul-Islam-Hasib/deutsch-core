@@ -27,7 +27,7 @@ const QuizPage: React.FC = () => {
       } else {
         setError(String(response.error));
       }
-    } catch (err) {
+    } catch {
       setError('QUIZ_LOAD_FAILURE: ADD_MINIMUM_4_ENTRIES_TO_GENERATE.');
     } finally {
       setIsLoading(false);
