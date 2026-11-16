@@ -1,7 +1,7 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    "rootDir": "./",
+    "rootDir": "./src",
     "outDir": "./dist",
     "module": "CommonJS",
     "target": "ESNext",
@@ -12,5 +12,8 @@
     "moduleResolution": "node",
     "ignoreDeprecations": "6.0",
     "types": ["node", "jest"]
-  }
+  },
+  "include": ["src"],
+  // Tests are run by ts-jest from source; keep them out of dist/ and the image.
+  "exclude": ["src/tests"]
 }
